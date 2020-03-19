@@ -10,6 +10,9 @@ namespace TeleGramBot_Scheduler
     {
         static void Main(string[] args)
         {
+            var botClient = BotInitializer.GetBotClient();
+            var processManger = new BotProcessMenager(botClient);
+            processManger.Start();
         }
     }
 }
