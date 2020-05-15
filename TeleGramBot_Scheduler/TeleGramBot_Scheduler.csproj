@@ -82,8 +82,10 @@
     <Compile Include="BotInitializer.cs" />
     <Compile Include="BotProcessMenager.cs" />
     <Compile Include="BotSettings.cs" />
+    <Compile Include="DateTimeUpdateProcessor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SessionProcessor.cs" />
     <Compile Include="TextMessageUpdateProcessor.cs" />
   </ItemGroup>
   <ItemGroup>

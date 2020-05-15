@@ -14,6 +14,8 @@ namespace TeleGramBot_Scheduler
     {
         private readonly TelegramBotClient _botClient;
         private TextMessageUpdateProcessor updateProcessor = new TextMessageUpdateProcessor();
+        private SessionProcessor sessionProcessor = new SessionProcessor();
+        private DateTimeUpdateProcessor dateTimeUpdateProcessor = new DateTimeUpdateProcessor();
 
         public BotProcessMenager(TelegramBotClient botClient)
         {
@@ -25,20 +27,23 @@ namespace TeleGramBot_Scheduler
             while (true)
             {
                 var updates = _botClient.GetUpdatesAsync(BotSettings.MessageOffset).Result;
-
                 foreach (var update in updates)
                 {
-                    if (updateProcessor.IsApplicable(update))
+                    while (sessionProcessor.Session_Status != SessionProcessor.SessionStatus.CloseSession)
                     {
-                        updateProcessor.Apply(update, _botClient);
-                        var updatess = _botClient.GetUpdatesAsync(BotSettings.MessageOffset).Result;
-                        foreach (var updatee in updatess)
+                        if (updateProcessor.IsApplicable(update))
                         {
-                            updateProcessor.TypeDateToRemind(update, _botClient);
+                            updateProcessor.Apply(update, _botClient);
+                            sessionProcessor.Session_Status = SessionProcessor.SessionStatus.MessageIsApply;
+                        }
+                        if (dateTimeUpdateProcessor.IsApplicable(update))
+                        {
+                            dateTimeUpdateProcessor.Apply(update, _botClient);
+                            sessionProcessor.Session_Status = SessionProcessor.SessionStatus.CloseSession;
                         }
                     }
+                    ChangeOffset(updates);
                 }
-                ChangeOffset(updates);
             }
         }
 
