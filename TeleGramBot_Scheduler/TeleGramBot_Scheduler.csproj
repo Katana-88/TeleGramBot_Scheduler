@@ -82,9 +82,14 @@
     <Compile Include="BotInitializer.cs" />
     <Compile Include="BotProcessMenager.cs" />
     <Compile Include="BotSettings.cs" />
+    <Compile Include="UpdateProcessors\CallbackQueryProcessor.cs" />
+    <Compile Include="UpdateProcessors\DateTimeUpdateProcessor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TextMessageUpdateProcessor.cs" />
+    <Compile Include="UpdateProcessors\IdProcessor.cs" />
+    <Compile Include="UpdateProcessors\IUpdateProcessor.cs" />
+    <Compile Include="UpdateProcessors\SessionProcessor.cs" />
+    <Compile Include="UpdateProcessors\TextMessageUpdateProcessor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

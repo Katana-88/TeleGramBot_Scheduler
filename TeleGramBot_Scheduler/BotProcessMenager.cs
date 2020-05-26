@@ -5,19 +5,33 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
+using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
+using TeleGramBot_Scheduler.Data;
+using TeleGramBot_Scheduler.UpdateProcessors;
 
 namespace TeleGramBot_Scheduler
 {
     public class BotProcessMenager
     {
         private readonly TelegramBotClient _botClient;
-        private TextMessageUpdateProcessor updateProcessor = new TextMessageUpdateProcessor();
+        private readonly IRepository<DataMessage> _messageRepository;
+        private List<IUpdateProcessor> updateProcessors = new List<IUpdateProcessor>
+        {
+            new TextMessageUpdateProcessor(),
+            new CallbackQueryProcessor(),
+            new DateTimeUpdateProcessor(),
+            new IdProcessor()
+        };
+        private SessionProcessor sessionProcessor = new SessionProcessor();
 
+        
         public BotProcessMenager(TelegramBotClient botClient)
         {
             _botClient = botClient;
+            _messageRepository = new MessageRepository();
         }
 
         public void Start()
@@ -25,21 +39,64 @@ namespace TeleGramBot_Scheduler
             while (true)
             {
                 var updates = _botClient.GetUpdatesAsync(BotSettings.MessageOffset).Result;
-
                 foreach (var update in updates)
                 {
-                    if (updateProcessor.IsApplicable(update))
+                   // ShowMessageIfItsDateTimeToRemindIsNow(update);
+                    if (update.Type == UpdateType.Message && update.Message.Text == "show")
                     {
-                        updateProcessor.Apply(update, _botClient);
-                        var updatess = _botClient.GetUpdatesAsync(BotSettings.MessageOffset).Result;
-                        foreach (var updatee in updatess)
+                        ShowMenu(update);
+                    }
+
+                    if (sessionProcessor.Session_Status != SessionProcessor.SessionStatus.CloseSession)// && update.Message.Text != "show")
+                    {
+                        var applicableUpdateProcessors = updateProcessors.Where(up => up.IsApplicable(update));
+                        foreach (var updateProcessor in applicableUpdateProcessors)
                         {
-                            updateProcessor.TypeDateToRemind(update, _botClient);
+                            updateProcessor.Apply(update, _botClient, sessionProcessor);
                         }
                     }
+                    ChangeOffset(updates);
                 }
-                ChangeOffset(updates);
             }
+        }
+
+        private void ShowMessageIfItsDateTimeToRemindIsNow(Update update)
+        {
+            var allmessages = new List<DataMessage>();
+            allmessages = _messageRepository.GetAll().ToList();
+
+            var actualmessages = allmessages.Where(l => l.TimeToRemind == DateTime.Now && l.IsActive == true);
+            if (actualmessages != null)
+            {
+                var listMessageText = $"Сегодня Вы просили напомнить:\n";
+
+                foreach (var actualmessage in actualmessages)
+                {
+                    listMessageText += $"\n{actualmessage.TimeToRemind.Date.ToString("dd/MM/yyyy H:mm")}, Id {actualmessage.Id}: {actualmessage.MessageText}\n";
+                }
+                var sentMessage = _botClient
+                                .SendTextMessageAsync(update.Message.Chat.Id, $"{listMessageText}\n")
+                                .Result;
+            }
+        }
+
+        private void ShowMenu(Update update)
+        {
+            var inlineKeyboard = new InlineKeyboardMarkup(new[] 
+            {
+                new[]{
+                    InlineKeyboardButton.WithCallbackData("Показать все напоминания"),
+                    InlineKeyboardButton.WithCallbackData("Добавить новое")
+                },
+                new[]
+                {
+                    InlineKeyboardButton.WithCallbackData("Изменить"),
+                    InlineKeyboardButton.WithCallbackData("Удалить")
+                }
+            });
+            var sentMessage = _botClient
+                .SendTextMessageAsync(update.Message.Chat.Id, $"Выберите пункт меню\n", replyMarkup: inlineKeyboard)
+                .Result;
         }
 
         private static void ChangeOffset(Update[] updates)

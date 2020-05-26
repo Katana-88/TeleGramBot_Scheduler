@@ -36,7 +36,7 @@ namespace TeleGramBot_Scheduler.Data
 
         public DataMessage GetLast()
         {
-            return _dbSet.LastOrDefault();
+            return _dbSet.OrderByDescending(m => m.Id).FirstOrDefault();
         }
 
         public IEnumerable<DataMessage> GetAll()
