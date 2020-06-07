@@ -22,7 +22,8 @@ namespace TeleGramBot_Scheduler
             UpdateIsSelected,
             UpdateMessageIsAply,
             UpdateDeteTimeIsAply,
-            UpdateIdIsAply
+            UpdateIdIsAply,
+            DoneIsSelected      
         }
 
         public SessionProcessor()

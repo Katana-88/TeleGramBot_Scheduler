@@ -43,7 +43,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
 
                 foreach (var actualmessage in actualmessages)
                 {
-                    listMessageText += $"\n{actualmessage.TimeToRemind.Date.ToString("dd/MM/yyyy H:mm")}, Id {actualmessage.Id}: {actualmessage.MessageText}\n";
+                    listMessageText += $"\n{actualmessage.TimeToRemind.Date.ToString("dd/MM/yyyy HH:mm")}, Id {actualmessage.Id}: {actualmessage.MessageText}\n";
                 }
                 var sentMessage = botClient
                                 .SendTextMessageAsync(update.CallbackQuery.Message.Chat.Id, $"{listMessageText}\n")
@@ -65,7 +65,14 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                                 .SendTextMessageAsync(update.CallbackQuery.Message.Chat.Id, $"Введите Id заметки, которую нужно изменить:\n")
                                 .Result;
             }
-            //добавить отключение напоминания.
+
+            if (buttonText == "Выполнено")
+            {
+                sessionProcessor.Session_Status = SessionProcessor.SessionStatus.DoneIsSelected;
+                var sentMessage = botClient
+                                .SendTextMessageAsync(update.CallbackQuery.Message.Chat.Id, $"Введите Id заметки, которую Вы выполнили:\n")
+                                .Result;
+            }
         }
     }
 }

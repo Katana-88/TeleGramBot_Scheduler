@@ -15,5 +15,7 @@ namespace TeleGramBot_Scheduler.Data
         public DateTime TimeToRemind { get; set; } = DateTime.Now;
 
         public bool IsActive { get; set; }
+
+        public int ChatId { get; set; }
     }
 }

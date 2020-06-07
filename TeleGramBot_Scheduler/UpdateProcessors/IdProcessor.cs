@@ -45,6 +45,29 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                 }
             }
 
+            if (sessionProcessor.Session_Status == SessionProcessor.SessionStatus.DoneIsSelected)
+            {
+                int idToMarkAsDone = int.Parse(update.Message.Text);
+                var messageToMarkAsDone = _messageRepository.Get(idToMarkAsDone);
+                if (messageToMarkAsDone != null)
+                {
+                    messageToMarkAsDone.IsActive = false;
+                    _messageRepository.Update(messageToMarkAsDone);
+                    _messageRepository.SaveChanges();
+                    sessionProcessor.Session_Status = SessionProcessor.SessionStatus.OpenSession;
+
+                    var sentMessage = botClient
+                                    .SendTextMessageAsync(update.Message.Chat.Id, $"Заметка отмечена как выполненная.\n")
+                                    .Result;
+                }
+                else
+                {
+                    var sentMessage = botClient
+                                  .SendTextMessageAsync(update.Message.Chat.Id, $"Заметка с таким Id не найдена.\n")
+                                  .Result;
+                }
+            }
+
             if (sessionProcessor.Session_Status == SessionProcessor.SessionStatus.UpdateIsSelected)
             {
                 int idToUpdate = int.Parse(update.Message.Text);

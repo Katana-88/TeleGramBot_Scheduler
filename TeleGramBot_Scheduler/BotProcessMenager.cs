@@ -45,15 +45,20 @@ namespace TeleGramBot_Scheduler
                     if (update.Type == UpdateType.Message && update.Message.Text == "show")
                     {
                         ShowMenu(update);
+                       // continue;
                     }
-
                     if (sessionProcessor.Session_Status != SessionProcessor.SessionStatus.CloseSession)// && update.Message.Text != "show")
                     {
                         var applicableUpdateProcessors = updateProcessors.Where(up => up.IsApplicable(update));
-                        foreach (var updateProcessor in applicableUpdateProcessors)
-                        {
-                            updateProcessor.Apply(update, _botClient, sessionProcessor);
-                        }
+                    foreach (var updateProcessor in applicableUpdateProcessors)
+                    {
+                        updateProcessor.Apply(update, _botClient, sessionProcessor);
+                    }
+
+                   /* if (sessionProcessor.Session_Status == SessionProcessor.SessionStatus.CloseSession)// && update.Message.Text != "show")
+                    {
+                        ShowMenu(update);
+                        continue;*/
                     }
                     ChangeOffset(updates);
                 }
@@ -74,6 +79,7 @@ namespace TeleGramBot_Scheduler
                 {
                     listMessageText += $"\n{actualmessage.TimeToRemind.Date.ToString("dd/MM/yyyy H:mm")}, Id {actualmessage.Id}: {actualmessage.MessageText}\n";
                 }
+
                 var sentMessage = _botClient
                                 .SendTextMessageAsync(update.Message.Chat.Id, $"{listMessageText}\n")
                                 .Result;
@@ -91,7 +97,8 @@ namespace TeleGramBot_Scheduler
                 new[]
                 {
                     InlineKeyboardButton.WithCallbackData("Изменить"),
-                    InlineKeyboardButton.WithCallbackData("Удалить")
+                    InlineKeyboardButton.WithCallbackData("Удалить"),
+                    InlineKeyboardButton.WithCallbackData("Выполнено")
                 }
             });
             var sentMessage = _botClient

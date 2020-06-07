@@ -17,6 +17,8 @@ namespace TeleGramBot_Scheduler.Data
             _context = new MessageContext();
             _dbSet = _context.Set<DataMessage>();
         }
+
+
         public void Add(DataMessage entity)
         {
             _dbSet.Add(entity);

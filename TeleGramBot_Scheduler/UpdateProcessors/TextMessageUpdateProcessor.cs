@@ -33,7 +33,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                 return;
             }
 
-            var dataMessage = new DataMessage { MessageText = message.Text, IsActive = true };
+            var dataMessage = new DataMessage { MessageText = message.Text, IsActive = true, ChatId = (int)message.Chat.Id };
             _messageRepository.Add(dataMessage);
             _messageRepository.SaveChanges();
             if (sessionProcessor.Session_Status == SessionProcessor.SessionStatus.UpdateIsSelected)

@@ -35,7 +35,9 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
             }
 
             DateTime newDate = DateTime.Parse(message.Text);
-            var messageToUpdate = _messageRepository.GetLast();
+            var allMessage = _messageRepository.GetAll();
+            var messageWithRecentChatId = allMessage.Where(m => m.ChatId == message.Chat.Id);
+            var messageToUpdate = messageWithRecentChatId.OrderByDescending(m => m.Id).FirstOrDefault();
             messageToUpdate.TimeToRemind = newDate;
             _messageRepository.Update(messageToUpdate);
             _messageRepository.SaveChanges();
@@ -53,6 +55,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                 var sentMessage = botClient
                 .SendTextMessageAsync(message.Chat.Id, $"Дата и время сохранены.\n")
                 .Result;
+
             }         
         }
     }
