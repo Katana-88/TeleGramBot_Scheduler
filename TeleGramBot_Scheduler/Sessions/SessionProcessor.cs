@@ -16,7 +16,7 @@ namespace TeleGramBot_Scheduler.Sessions
 
         public enum NameOfSession
         {
-            SessionProcessorForNewMessage,
+            SessionProcessorForNewMessage=1,
             SessionProcessorForUpdateMessage,
             SessionProcessorForDeleteMessage,
             SessionProcessorForMarkAsDoneMessage

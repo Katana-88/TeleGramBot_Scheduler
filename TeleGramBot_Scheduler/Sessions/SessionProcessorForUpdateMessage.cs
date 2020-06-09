@@ -14,12 +14,11 @@ namespace TeleGramBot_Scheduler.Sessions
 
         public enum SessionStatus
         {
-            OpenSession,
+            OpenSession=1,
             CloseSession,
-            //UpdateIsSelected,
+            UpdateIdIsAply,
             UpdateMessageIsAply,
             UpdateDeteTimeIsAply,
-            UpdateIdIsAply,
         }
 
         public SessionProcessorForUpdateMessage()

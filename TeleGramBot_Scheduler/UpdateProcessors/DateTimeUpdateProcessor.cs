@@ -67,10 +67,10 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                 var messageToUpdate = messageWithRecentChatId.OrderByDescending(m => m.Id).FirstOrDefault();
                 messageToUpdate.TimeToRemind = newDate;
                 _messageRepository.Update(messageToUpdate);
-                _messageRepository.SaveChanges();
+               // _messageRepository.SaveChanges();
                 currentStatusState.SessionStatus = (int)SessionProcessorForNewMessage.SessionStatus.TimeToRemindIsApply;
                 _sessionStatusForChatIdRepo.Update(currentStatusState);
-                _sessionStatusForChatIdRepo.SaveChanges();
+              //  _sessionStatusForChatIdRepo.SaveChanges();
             }
             if (currentStatusState.SessionProcessor == (int)SessionProcessor.NameOfSession.SessionProcessorForUpdateMessage
                 && currentStatusState.SessionStatus == (int)SessionProcessorForUpdateMessage.SessionStatus.UpdateMessageIsAply)
@@ -78,10 +78,10 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                 var messageToUpdate = _messageRepository.Get(currentStatusState.MessageId);
                 messageToUpdate.TimeToRemind = newDate;
                 _messageRepository.Update(messageToUpdate);
-                _messageRepository.SaveChanges();
+              //  _messageRepository.SaveChanges();
                 currentStatusState.SessionStatus = (int)SessionProcessorForUpdateMessage.SessionStatus.UpdateDeteTimeIsAply;
                 _sessionStatusForChatIdRepo.Update(currentStatusState);
-                _sessionStatusForChatIdRepo.SaveChanges();
+             //   _sessionStatusForChatIdRepo.SaveChanges();
             }
 
             sessionProcessor.IsSessionOpen = false;

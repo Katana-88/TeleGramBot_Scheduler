@@ -67,19 +67,19 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                 var messageToUpdate = _messageRepository.Get(currentStatusState.MessageId);
                 messageToUpdate.MessageText = dataMessage.MessageText;
                 _messageRepository.Update(messageToUpdate);
-                _messageRepository.SaveChanges();
+             //   _messageRepository.SaveChanges();
                 currentStatusState.SessionStatus = (int)SessionProcessorForUpdateMessage.SessionStatus.UpdateMessageIsAply;
                 _sessionStatusForChatIdRepo.Update(currentStatusState);
-                _sessionStatusForChatIdRepo.SaveChanges();
+           //     _sessionStatusForChatIdRepo.SaveChanges();
             }
             else if (currentStatusState.SessionProcessor == (int)SessionProcessor.NameOfSession.SessionProcessorForNewMessage
                 && currentStatusState.SessionStatus == (int)SessionProcessorForNewMessage.SessionStatus.OpenSession)
             {
                 _messageRepository.Add(dataMessage);
-                _messageRepository.SaveChanges();
+          //      _messageRepository.SaveChanges();
                 currentStatusState.SessionStatus = (int)SessionProcessorForNewMessage.SessionStatus.MessageIsApply;
                 _sessionStatusForChatIdRepo.Update(currentStatusState);
-                _sessionStatusForChatIdRepo.SaveChanges();
+          //      _sessionStatusForChatIdRepo.SaveChanges();
             }
 
             var sentMessage = botClient

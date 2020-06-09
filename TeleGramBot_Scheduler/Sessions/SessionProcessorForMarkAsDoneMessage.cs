@@ -14,9 +14,9 @@ namespace TeleGramBot_Scheduler.Sessions
 
         public enum SessionStatus
         {
-            OpenSession,
+            OpenSession=1,
             CloseSession,
-            DoneIsSelected
+            DoneIdIsAply
         }
 
         public SessionProcessorForMarkAsDoneMessage()

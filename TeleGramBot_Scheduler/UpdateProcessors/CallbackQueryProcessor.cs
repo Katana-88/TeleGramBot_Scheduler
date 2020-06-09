@@ -29,21 +29,21 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
         {
             string buttonText = update.CallbackQuery.Data;
 
+            IEnumerable<SessionStatusForChatId> allSessionStates = null;
+            SessionStatusForChatId sessionStateForCurrentChat = null;
+            try
+            {
+                allSessionStates = _sessionStatusForChatIdRepo.GetAll();
+            }
+            catch (Exception ex) { Console.WriteLine($"{ex.Message}"); }
+
+            if (allSessionStates != null)
+            {
+                sessionStateForCurrentChat = allSessionStates.Where(s => s.ChatId == update.CallbackQuery.Message.Chat.Id).FirstOrDefault();
+            }
+
             if (buttonText == "Добавить новое")
             {
-                IEnumerable <SessionStatusForChatId> allSessionStates = null;
-                SessionStatusForChatId sessionStateForCurrentChat = null;
-                try
-                {
-                    allSessionStates = _sessionStatusForChatIdRepo.GetAll();
-                }
-                catch (Exception ex) { Console.WriteLine($"{ex.Message}"); }
-
-                if (allSessionStates != null)
-                {
-                    sessionStateForCurrentChat = allSessionStates.Where(s => s.ChatId == update.CallbackQuery.Message.Chat.Id).FirstOrDefault();
-                }
-
                 sessionProcessor.Name_Of_Session = SessionProcessor.NameOfSession.SessionProcessorForNewMessage;
                 sessionProcessor.IsSessionOpen = true;
 
@@ -56,7 +56,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                         SessionStatus = (int)SessionProcessorForNewMessage.SessionStatus.OpenSession
                     };
                     _sessionStatusForChatIdRepo.Add(addSesion);
-                    _sessionStatusForChatIdRepo.SaveChanges();
+                   // _sessionStatusForChatIdRepo.SaveChanges();
                 }
 
 
@@ -65,7 +65,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                     sessionStateForCurrentChat.SessionProcessor = (int)SessionProcessor.NameOfSession.SessionProcessorForNewMessage;
                     sessionStateForCurrentChat.SessionStatus = (int)SessionProcessorForNewMessage.SessionStatus.OpenSession;
                     _sessionStatusForChatIdRepo.Update(sessionStateForCurrentChat);
-                    _sessionStatusForChatIdRepo.SaveChanges();
+                  //  _sessionStatusForChatIdRepo.SaveChanges();
                 }
 
                     var sentMessage = botClient
@@ -86,7 +86,6 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                 {
                     listMessageText += $"\n{actualmessage.TimeToRemind.Date.ToString("dd/MM/yyyy HH:mm")}, Id {actualmessage.Id}: {actualmessage.MessageText}\n";
                 }
-                sessionProcessor.IsSessionOpen = false;
 
                 var sentMessage = botClient
                                 .SendTextMessageAsync(update.CallbackQuery.Message.Chat.Id, $"{listMessageText}\n")
@@ -95,19 +94,6 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
 
             if (buttonText == "Удалить")
             {
-                IEnumerable<SessionStatusForChatId> allSessionStates = null;
-                SessionStatusForChatId sessionStateForCurrentChat = null;
-                try
-                {
-                    allSessionStates = _sessionStatusForChatIdRepo.GetAll();
-                }
-                catch (Exception ex) { Console.WriteLine($"{ex.Message}"); }
-
-                if (allSessionStates != null)
-                {
-                    sessionStateForCurrentChat = allSessionStates.Where(s => s.ChatId == update.CallbackQuery.Message.Chat.Id).FirstOrDefault();
-                }
-
                 sessionProcessor.Name_Of_Session = SessionProcessor.NameOfSession.SessionProcessorForDeleteMessage;
                 sessionProcessor.IsSessionOpen = true;
 
@@ -120,16 +106,15 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                         SessionStatus = (int)SessionProcessorForDeleteMessage.SessionStatus.OpenSession
                     };
                     _sessionStatusForChatIdRepo.Add(addSesion);
-                    _sessionStatusForChatIdRepo.SaveChanges();
+               //     _sessionStatusForChatIdRepo.SaveChanges();
                 }
-
 
                 if (sessionStateForCurrentChat != null)
                 {
                     sessionStateForCurrentChat.SessionProcessor = (int)SessionProcessor.NameOfSession.SessionProcessorForDeleteMessage;
                     sessionStateForCurrentChat.SessionStatus = (int)SessionProcessorForDeleteMessage.SessionStatus.OpenSession;
                     _sessionStatusForChatIdRepo.Update(sessionStateForCurrentChat);
-                    _sessionStatusForChatIdRepo.SaveChanges();
+               //     _sessionStatusForChatIdRepo.SaveChanges();
                 }
 
                 var sentMessage = botClient
@@ -138,20 +123,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
             }
 
             if (buttonText == "Изменить")
-            {
-                IEnumerable<SessionStatusForChatId> allSessionStates = null;
-                SessionStatusForChatId sessionStateForCurrentChat = null;
-                try
-                {
-                    allSessionStates = _sessionStatusForChatIdRepo.GetAll();
-                }
-                catch (Exception ex) { Console.WriteLine($"{ex.Message}"); }
-
-                if (allSessionStates != null)
-                {
-                    sessionStateForCurrentChat = allSessionStates.Where(s => s.ChatId == update.CallbackQuery.Message.Chat.Id).FirstOrDefault();
-                }
-
+            {               
                 sessionProcessor.Name_Of_Session = SessionProcessor.NameOfSession.SessionProcessorForUpdateMessage;
                 sessionProcessor.IsSessionOpen = true;
 
@@ -164,7 +136,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                         SessionStatus = (int)SessionProcessorForUpdateMessage.SessionStatus.OpenSession
                     };
                     _sessionStatusForChatIdRepo.Add(addSesion);
-                    _sessionStatusForChatIdRepo.SaveChanges();
+              //      _sessionStatusForChatIdRepo.SaveChanges();
                 }
 
 
@@ -173,7 +145,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                     sessionStateForCurrentChat.SessionProcessor = (int)SessionProcessor.NameOfSession.SessionProcessorForUpdateMessage;
                     sessionStateForCurrentChat.SessionStatus = (int)SessionProcessorForUpdateMessage.SessionStatus.OpenSession;
                     _sessionStatusForChatIdRepo.Update(sessionStateForCurrentChat);
-                    _sessionStatusForChatIdRepo.SaveChanges();
+                //    _sessionStatusForChatIdRepo.SaveChanges();
                 }
 
                 var sentMessage = botClient
@@ -183,19 +155,6 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
 
             if (buttonText == "Выполнено")
             {
-                IEnumerable<SessionStatusForChatId> allSessionStates = null;
-                SessionStatusForChatId sessionStateForCurrentChat = null;
-                try
-                {
-                    allSessionStates = _sessionStatusForChatIdRepo.GetAll();
-                }
-                catch (Exception ex) { Console.WriteLine($"{ex.Message}"); }
-
-                if (allSessionStates != null)
-                {
-                    sessionStateForCurrentChat = allSessionStates.Where(s => s.ChatId == update.CallbackQuery.Message.Chat.Id).FirstOrDefault();
-                }
-
                 sessionProcessor.Name_Of_Session = SessionProcessor.NameOfSession.SessionProcessorForMarkAsDoneMessage;
                 sessionProcessor.IsSessionOpen = true;
 
@@ -208,7 +167,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                         SessionStatus = (int)SessionProcessorForMarkAsDoneMessage.SessionStatus.OpenSession
                     };
                     _sessionStatusForChatIdRepo.Add(addSesion);
-                    _sessionStatusForChatIdRepo.SaveChanges();
+                 //   _sessionStatusForChatIdRepo.SaveChanges();
                 }
 
 
@@ -217,7 +176,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                     sessionStateForCurrentChat.SessionProcessor = (int)SessionProcessor.NameOfSession.SessionProcessorForMarkAsDoneMessage;
                     sessionStateForCurrentChat.SessionStatus = (int)SessionProcessorForMarkAsDoneMessage.SessionStatus.OpenSession;
                     _sessionStatusForChatIdRepo.Update(sessionStateForCurrentChat);
-                    _sessionStatusForChatIdRepo.SaveChanges();
+                //    _sessionStatusForChatIdRepo.SaveChanges();
                 }
                 
                 var sentMessage = botClient

@@ -11,17 +11,19 @@ namespace TeleGramBot_Scheduler.Data
     {
         private readonly MessageContext _context;
 
-        private readonly DbSet<SessionStatusForChatId> _dbSet;
+       // private readonly DbSet<SessionStatusForChatId> _dbSet;
 
         public SessionStatusForChatIdRepository()
         {
             _context = new MessageContext();
-            _dbSet = _context.Set<SessionStatusForChatId>();
+        //    _dbSet = _context.Set<SessionStatusForChatId>();
         }
 
         public void Add(SessionStatusForChatId entity)
         {
-            _dbSet.Add(entity);
+            _context.SessionStatusForChatId.Add(entity);
+            _context.Entry(entity).State = EntityState.Added;
+            SaveChanges();
         }
 
         public void Delete(SessionStatusForChatId entity)
@@ -31,17 +33,17 @@ namespace TeleGramBot_Scheduler.Data
 
         public SessionStatusForChatId Get(int id)
         {
-            return _dbSet.FirstOrDefault(m => m.Id == id);
+            return _context.SessionStatusForChatId.FirstOrDefault(s => s.Id == id);
         }
 
         public IEnumerable<SessionStatusForChatId> GetAll()
         {
-            return _dbSet.ToList();
+            return _context.SessionStatusForChatId.ToList();
         }
 
         public SessionStatusForChatId GetLast()
         {
-            return _dbSet.OrderByDescending(m => m.Id).FirstOrDefault();
+            return _context.SessionStatusForChatId.OrderByDescending(s => s.Id).FirstOrDefault();
         }
 
         public void SaveChanges()
@@ -51,9 +53,12 @@ namespace TeleGramBot_Scheduler.Data
 
         public void Update(SessionStatusForChatId entity)
         {
-            var toUpdate = Get(entity.Id);
+            var toUpdate = _context.SessionStatusForChatId.AsNoTracking().FirstOrDefault(s => s.Id == entity.Id);
             if (toUpdate != null)
-                toUpdate = entity;
+            {
+                _context.Entry(entity).State = entity.Id == 0 ? EntityState.Added : EntityState.Modified;
+                SaveChanges();
+            }
         }
     }
 }

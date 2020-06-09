@@ -48,10 +48,10 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                 if (messageToDelete != null)
                 {
                     _messageRepository.Delete(messageToDelete);
-                    _messageRepository.SaveChanges();
+                 //   _messageRepository.SaveChanges();
                     currentStatusState.SessionStatus = (int)SessionProcessorForDeleteMessage.SessionStatus.DeleteIdIsAply;
                     _sessionStatusForChatIdRepo.Update(currentStatusState);
-                    _sessionStatusForChatIdRepo.SaveChanges();
+                //    _sessionStatusForChatIdRepo.SaveChanges();
                     sessionProcessor.IsSessionOpen = false;
 
                     var sentMessage = botClient
@@ -75,10 +75,10 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                 {
                     messageToMarkAsDone.IsActive = false;
                     _messageRepository.Update(messageToMarkAsDone);
-                    _messageRepository.SaveChanges();
+             //       _messageRepository.SaveChanges();
                     currentStatusState.SessionStatus = (int)SessionProcessorForMarkAsDoneMessage.SessionStatus.CloseSession;
                     _sessionStatusForChatIdRepo.Update(currentStatusState);
-                    _sessionStatusForChatIdRepo.SaveChanges();
+             //       _sessionStatusForChatIdRepo.SaveChanges();
                     sessionProcessor.IsSessionOpen = false;
 
                     var sentMessage = botClient
@@ -104,7 +104,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                     currentStatusState.SessionStatus = (int)SessionProcessorForUpdateMessage.SessionStatus.UpdateIdIsAply;
                     currentStatusState.MessageId = idToUpdate;
                     _sessionStatusForChatIdRepo.Update(currentStatusState);
-                    _sessionStatusForChatIdRepo.SaveChanges();
+               //     _sessionStatusForChatIdRepo.SaveChanges();
 
                     var sentMessage = botClient
                                     .SendTextMessageAsync(update.Message.Chat.Id, $"Заметка: {messageToUpdate.MessageText}, время напоминания: {messageToUpdate.TimeToRemind}\n" +
