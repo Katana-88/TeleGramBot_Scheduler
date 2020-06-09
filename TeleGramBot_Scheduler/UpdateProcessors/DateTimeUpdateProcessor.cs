@@ -7,26 +7,49 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using TeleGramBot_Scheduler.Data;
-
+using TeleGramBot_Scheduler.Sessions;
 
 namespace TeleGramBot_Scheduler.UpdateProcessors
 {
     public class DateTimeUpdateProcessor : IUpdateProcessor
     {
         private readonly IRepository<DataMessage> _messageRepository;
+        private readonly IRepository<SessionStatusForChatId> _sessionStatusForChatIdRepo;
+
         public bool IsApplicable(Update update)
             => update.Type == UpdateType.Message && DateTime.TryParse(update.Message.Text, out DateTime result) && update.Message.Text != null;
 
         public DateTimeUpdateProcessor()
         {
             _messageRepository = new MessageRepository();
+            _sessionStatusForChatIdRepo = new SessionStatusForChatIdRepository();
         }
 
         public void Apply(Update update, TelegramBotClient botClient, SessionProcessor sessionProcessor)
         {
             var message = update.Message;
 
-            if (sessionProcessor.Session_Status != SessionProcessor.SessionStatus.MessageIsApply && sessionProcessor.Session_Status != SessionProcessor.SessionStatus.UpdateMessageIsAply)
+            if (sessionProcessor.IsSessionOpen == false)
+            {
+                var errorMessage = botClient
+                    .SendTextMessageAsync(message.Chat.Id, $"Сперва вызовите меню через команду show.\n")
+                    .Result;
+                return;
+            }
+
+            var allStatuses = _sessionStatusForChatIdRepo.GetAll();
+            var currentStatusState = allStatuses.Where(a => a.ChatId == update.Message.Chat.Id).FirstOrDefault();
+
+            if (currentStatusState.SessionProcessor == (int)SessionProcessor.NameOfSession.SessionProcessorForNewMessage
+                && currentStatusState.SessionStatus != (int)SessionProcessorForNewMessage.SessionStatus.MessageIsApply)
+            {
+                var errorMessage = botClient
+                  .SendTextMessageAsync(message.Chat.Id, $"Текст заметки не сохранился, попробуйте ещё раз.\n")
+                  .Result;
+                return;
+            }
+            if (currentStatusState.SessionProcessor == (int)SessionProcessor.NameOfSession.SessionProcessorForUpdateMessage
+                && currentStatusState.SessionStatus != (int)SessionProcessorForUpdateMessage.SessionStatus.UpdateMessageIsAply)
             {
                 var errorMessage = botClient
                   .SendTextMessageAsync(message.Chat.Id, $"Текст заметки не сохранился, попробуйте ещё раз.\n")
@@ -35,28 +58,37 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
             }
 
             DateTime newDate = DateTime.Parse(message.Text);
-            var allMessage = _messageRepository.GetAll();
-            var messageWithRecentChatId = allMessage.Where(m => m.ChatId == message.Chat.Id);
-            var messageToUpdate = messageWithRecentChatId.OrderByDescending(m => m.Id).FirstOrDefault();
-            messageToUpdate.TimeToRemind = newDate;
-            _messageRepository.Update(messageToUpdate);
-            _messageRepository.SaveChanges();
 
-            if (sessionProcessor.Session_Status == SessionProcessor.SessionStatus.UpdateMessageIsAply)
+            if (currentStatusState.SessionProcessor == (int)SessionProcessor.NameOfSession.SessionProcessorForNewMessage
+                && currentStatusState.SessionStatus == (int)SessionProcessorForNewMessage.SessionStatus.MessageIsApply)
             {
-                sessionProcessor.Session_Status = SessionProcessor.SessionStatus.UpdateDeteTimeIsAply;
-                var sentMessage = botClient
-                .SendTextMessageAsync(message.Chat.Id, $"Дата и время сохранены. Укажите ещё раз Id заметки, которую нужно заменить на новую:\n")
-                .Result;
+                var allMessage = _messageRepository.GetAll();
+                var messageWithRecentChatId = allMessage.Where(m => m.ChatId == message.Chat.Id);
+                var messageToUpdate = messageWithRecentChatId.OrderByDescending(m => m.Id).FirstOrDefault();
+                messageToUpdate.TimeToRemind = newDate;
+                _messageRepository.Update(messageToUpdate);
+                _messageRepository.SaveChanges();
+                currentStatusState.SessionStatus = (int)SessionProcessorForNewMessage.SessionStatus.TimeToRemindIsApply;
+                _sessionStatusForChatIdRepo.Update(currentStatusState);
+                _sessionStatusForChatIdRepo.SaveChanges();
             }
-            else
+            if (currentStatusState.SessionProcessor == (int)SessionProcessor.NameOfSession.SessionProcessorForUpdateMessage
+                && currentStatusState.SessionStatus == (int)SessionProcessorForUpdateMessage.SessionStatus.UpdateMessageIsAply)
             {
-                sessionProcessor.Session_Status = SessionProcessor.SessionStatus.TimeToRemindIsApply;
-                var sentMessage = botClient
+                var messageToUpdate = _messageRepository.Get(currentStatusState.MessageId);
+                messageToUpdate.TimeToRemind = newDate;
+                _messageRepository.Update(messageToUpdate);
+                _messageRepository.SaveChanges();
+                currentStatusState.SessionStatus = (int)SessionProcessorForUpdateMessage.SessionStatus.UpdateDeteTimeIsAply;
+                _sessionStatusForChatIdRepo.Update(currentStatusState);
+                _sessionStatusForChatIdRepo.SaveChanges();
+            }
+
+            sessionProcessor.IsSessionOpen = false;
+
+            var sentMessage = botClient
                 .SendTextMessageAsync(message.Chat.Id, $"Дата и время сохранены.\n")
                 .Result;
-
-            }         
         }
     }
 }

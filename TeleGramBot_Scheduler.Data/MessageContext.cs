@@ -11,6 +11,8 @@ namespace TeleGramBot_Scheduler.Data
     {
         public DbSet<DataMessage> DataMessage { get; set; }
 
+        public DbSet<SessionStatusForChatId> SessionStatusForChatId { get; set; }
+
         public MessageContext()
         {
             Database.SetInitializer(new DropCreateDatabaseIfModelChanges<MessageContext>());

@@ -4,31 +4,27 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TeleGramBot_Scheduler
+namespace TeleGramBot_Scheduler.Sessions
 {
-    public class SessionProcessor
+    public class SessionProcessorForUpdateMessage
     {
-        public string NameOfSession { get; set; }
+        public Dictionary<int, int> ChatId_SassionState;
+
         public SessionStatus Session_Status { get; set; }
 
         public enum SessionStatus
         {
             OpenSession,
-            MessageIsApply,
-            TimeToRemindIsApply,
             CloseSession,
-            DeleteIsSelected,
-            DeleteIdIsAply,
-            UpdateIsSelected,
+            //UpdateIsSelected,
             UpdateMessageIsAply,
             UpdateDeteTimeIsAply,
             UpdateIdIsAply,
-            DoneIsSelected      
         }
 
-        public SessionProcessor()
+        public SessionProcessorForUpdateMessage()
         {
-            Session_Status = SessionStatus.OpenSession;
+            ChatId_SassionState = new Dictionary<int, int>();
         }
     }
 }

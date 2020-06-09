@@ -10,6 +10,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using TeleGramBot_Scheduler.Data;
+using TeleGramBot_Scheduler.Sessions;
 using TeleGramBot_Scheduler.UpdateProcessors;
 
 namespace TeleGramBot_Scheduler
@@ -25,13 +26,14 @@ namespace TeleGramBot_Scheduler
             new DateTimeUpdateProcessor(),
             new IdProcessor()
         };
-        private SessionProcessor sessionProcessor = new SessionProcessor();
+        private SessionProcessor sessionProcessor;
 
         
         public BotProcessMenager(TelegramBotClient botClient)
         {
             _botClient = botClient;
             _messageRepository = new MessageRepository();
+            sessionProcessor = new SessionProcessor();
         }
 
         public void Start()
@@ -44,22 +46,26 @@ namespace TeleGramBot_Scheduler
                    // ShowMessageIfItsDateTimeToRemindIsNow(update);
                     if (update.Type == UpdateType.Message && update.Message.Text == "show")
                     {
+                        sessionProcessor.IsSessionOpen = true;
                         ShowMenu(update);
-                       // continue;
                     }
-                    if (sessionProcessor.Session_Status != SessionProcessor.SessionStatus.CloseSession)// && update.Message.Text != "show")
-                    {
-                        var applicableUpdateProcessors = updateProcessors.Where(up => up.IsApplicable(update));
+
+                    var applicableUpdateProcessors = updateProcessors.Where(up => up.IsApplicable(update));
+
                     foreach (var updateProcessor in applicableUpdateProcessors)
                     {
                         updateProcessor.Apply(update, _botClient, sessionProcessor);
                     }
 
-                   /* if (sessionProcessor.Session_Status == SessionProcessor.SessionStatus.CloseSession)// && update.Message.Text != "show")
+              /*      if (!sessionProcessor.IsSessionOpen)
                     {
                         ShowMenu(update);
-                        continue;*/
+                        ChangeOffset(updates);
+                        sessionProcessor.IsSessionOpen = true;
+                        continue;
                     }
+                    После закрытия сессии новый update не приходит и получаем исключение NRE
+                     */
                     ChangeOffset(updates);
                 }
             }

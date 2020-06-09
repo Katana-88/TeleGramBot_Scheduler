@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using TeleGramBot_Scheduler.Sessions;
 
 namespace TeleGramBot_Scheduler.UpdateProcessors
 {
