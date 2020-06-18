@@ -8,7 +8,7 @@ namespace TeleGramBot_Scheduler.Sessions
 {
     public class SessionProcessorForDeleteMessage
     {
-        public Dictionary<int, int> ChatId_SassionState;
+        //public Dictionary<int, int> ChatId_SassionState;
 
         public SessionStatus Session_Status { get; set; }
 
@@ -19,9 +19,9 @@ namespace TeleGramBot_Scheduler.Sessions
             DeleteIdIsAply
         }
 
-        public SessionProcessorForDeleteMessage()
+        /*public SessionProcessorForDeleteMessage()
         {
             ChatId_SassionState = new Dictionary<int, int>();
-        }
+        }*/
     }
 }

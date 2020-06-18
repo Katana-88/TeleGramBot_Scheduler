@@ -57,14 +57,14 @@ namespace TeleGramBot_Scheduler
                         updateProcessor.Apply(update, _botClient, sessionProcessor);
                     }
 
-              /*      if (!sessionProcessor.IsSessionOpen)
+                    /*if (!sessionProcessor.IsSessionOpen)
                     {
                         ShowMenu(update);
                         ChangeOffset(updates);
                         sessionProcessor.IsSessionOpen = true;
                         continue;
                     }
-                    После закрытия сессии новый update не приходит и получаем исключение NRE
+                    После закрытия сессии новый update не приходит и получаем исключение NullRefEx
                      */
                     ChangeOffset(updates);
                 }

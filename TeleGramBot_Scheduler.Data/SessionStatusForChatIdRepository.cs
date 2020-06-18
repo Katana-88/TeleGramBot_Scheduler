@@ -11,12 +11,9 @@ namespace TeleGramBot_Scheduler.Data
     {
         private readonly MessageContext _context;
 
-       // private readonly DbSet<SessionStatusForChatId> _dbSet;
-
         public SessionStatusForChatIdRepository()
         {
             _context = new MessageContext();
-        //    _dbSet = _context.Set<SessionStatusForChatId>();
         }
 
         public void Add(SessionStatusForChatId entity)
@@ -53,10 +50,10 @@ namespace TeleGramBot_Scheduler.Data
 
         public void Update(SessionStatusForChatId entity)
         {
-            var toUpdate = _context.SessionStatusForChatId.AsNoTracking().FirstOrDefault(s => s.Id == entity.Id);
+            var toUpdate = _context.SessionStatusForChatId.FirstOrDefault(s => s.Id == entity.Id);
             if (toUpdate != null)
             {
-                _context.Entry(entity).State = entity.Id == 0 ? EntityState.Added : EntityState.Modified;
+                _context.Entry(entity).State = EntityState.Modified;
                 SaveChanges();
             }
         }

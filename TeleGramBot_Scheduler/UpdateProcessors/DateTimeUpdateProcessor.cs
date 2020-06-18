@@ -38,7 +38,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
             }
 
             var allStatuses = _sessionStatusForChatIdRepo.GetAll();
-            var currentStatusState = allStatuses.Where(a => a.ChatId == update.Message.Chat.Id).FirstOrDefault();
+            var currentStatusState = allStatuses.OrderByDescending(s => s.Id).FirstOrDefault(s => s.ChatId == update.Message.Chat.Id);
 
             if (currentStatusState.SessionProcessor == (int)SessionProcessor.NameOfSession.SessionProcessorForNewMessage
                 && currentStatusState.SessionStatus != (int)SessionProcessorForNewMessage.SessionStatus.MessageIsApply)
@@ -67,21 +67,20 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                 var messageToUpdate = messageWithRecentChatId.OrderByDescending(m => m.Id).FirstOrDefault();
                 messageToUpdate.TimeToRemind = newDate;
                 _messageRepository.Update(messageToUpdate);
-               // _messageRepository.SaveChanges();
+
                 currentStatusState.SessionStatus = (int)SessionProcessorForNewMessage.SessionStatus.TimeToRemindIsApply;
                 _sessionStatusForChatIdRepo.Update(currentStatusState);
-              //  _sessionStatusForChatIdRepo.SaveChanges();
             }
+
             if (currentStatusState.SessionProcessor == (int)SessionProcessor.NameOfSession.SessionProcessorForUpdateMessage
                 && currentStatusState.SessionStatus == (int)SessionProcessorForUpdateMessage.SessionStatus.UpdateMessageIsAply)
             {
                 var messageToUpdate = _messageRepository.Get(currentStatusState.MessageId);
                 messageToUpdate.TimeToRemind = newDate;
                 _messageRepository.Update(messageToUpdate);
-              //  _messageRepository.SaveChanges();
+
                 currentStatusState.SessionStatus = (int)SessionProcessorForUpdateMessage.SessionStatus.UpdateDeteTimeIsAply;
                 _sessionStatusForChatIdRepo.Update(currentStatusState);
-             //   _sessionStatusForChatIdRepo.SaveChanges();
             }
 
             sessionProcessor.IsSessionOpen = false;

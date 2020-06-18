@@ -8,7 +8,7 @@ namespace TeleGramBot_Scheduler.Sessions
 {
     public class SessionProcessorForUpdateMessage
     {
-        public Dictionary<int, int> ChatId_SassionState;
+        //public Dictionary<int, int> ChatId_SassionState;
 
         public SessionStatus Session_Status { get; set; }
 
@@ -21,9 +21,9 @@ namespace TeleGramBot_Scheduler.Sessions
             UpdateDeteTimeIsAply,
         }
 
-        public SessionProcessorForUpdateMessage()
+        /*public SessionProcessorForUpdateMessage()
         {
             ChatId_SassionState = new Dictionary<int, int>();
-        }
+        }*/
     }
 }

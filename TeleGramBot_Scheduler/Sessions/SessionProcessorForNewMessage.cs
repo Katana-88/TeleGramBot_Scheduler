@@ -8,7 +8,7 @@ namespace TeleGramBot_Scheduler.Sessions
 {
     public class SessionProcessorForNewMessage
     {
-        public Dictionary<long, int> ChatId_SassionState;
+        //public Dictionary<long, int> ChatId_SassionState;
 
         public SessionStatus Session_Status { get; set; }
 
@@ -20,9 +20,9 @@ namespace TeleGramBot_Scheduler.Sessions
             TimeToRemindIsApply
         }
 
-        public SessionProcessorForNewMessage()
+        /*public SessionProcessorForNewMessage()
         {
             ChatId_SassionState = new Dictionary<long, int>();
-        }
+        }*/
     }
 }

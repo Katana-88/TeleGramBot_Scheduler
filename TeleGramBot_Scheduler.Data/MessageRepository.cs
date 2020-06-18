@@ -62,7 +62,7 @@ namespace TeleGramBot_Scheduler.Data
             var toUpdate = _context.DataMessage.AsNoTracking().FirstOrDefault(m => m.Id == entity.Id);
             if (toUpdate != null)
             {
-                _context.Entry(entity).State = entity.Id == 0 ? EntityState.Added : EntityState.Modified;
+                _context.Entry(entity).State = EntityState.Modified;
                 SaveChanges();
             }
         }
