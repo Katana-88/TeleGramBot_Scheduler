@@ -12,6 +12,8 @@ namespace TeleGramBot_Scheduler.Sessions
     {
         public NameOfSession Name_Of_Session{ get; set; }
 
+        public readonly IRepository<SessionStatusForChatId> _sessionStatusForChatIdRepo;
+
         public bool IsSessionOpen { get; set; }
 
         public enum NameOfSession
@@ -25,6 +27,7 @@ namespace TeleGramBot_Scheduler.Sessions
         public SessionProcessor()
         {
             IsSessionOpen = false;
+            _sessionStatusForChatIdRepo = new SessionStatusForChatIdRepository();
         }
     }
 }

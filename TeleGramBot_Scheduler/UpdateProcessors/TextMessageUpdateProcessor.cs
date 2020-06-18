@@ -14,7 +14,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
     public class TextMessageUpdateProcessor : IUpdateProcessor
     {
         private readonly IRepository<DataMessage> _messageRepository;
-        private readonly IRepository<SessionStatusForChatId> _sessionStatusForChatIdRepo;
+        //private readonly IRepository<SessionStatusForChatId> _sessionStatusForChatIdRepo;
 
         public bool IsApplicable(Update update)
             => update.Type == UpdateType.Message && update.Message.Text != null && update.Message.Text !="show" 
@@ -23,7 +23,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
         public TextMessageUpdateProcessor()
         {
             _messageRepository = new MessageRepository();
-            _sessionStatusForChatIdRepo = new SessionStatusForChatIdRepository();
+           // _sessionStatusForChatIdRepo = new SessionStatusForChatIdRepository();
         }
 
         public void Apply(Update update, TelegramBotClient botClient, SessionProcessor sessionProcessor)
@@ -37,7 +37,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                     .Result;
                 return;
             }
-            var allStatuses = _sessionStatusForChatIdRepo.GetAll();
+            var allStatuses = sessionProcessor._sessionStatusForChatIdRepo.GetAll();
             var currentStatusState = allStatuses.OrderByDescending(s => s.Id).FirstOrDefault(s => s.ChatId == update.Message.Chat.Id);
 
             if (currentStatusState.SessionProcessor == (int)SessionProcessor.NameOfSession.SessionProcessorForUpdateMessage
@@ -69,7 +69,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                 _messageRepository.Update(messageToUpdate);
 
                 currentStatusState.SessionStatus = (int)SessionProcessorForUpdateMessage.SessionStatus.UpdateMessageIsAply;
-                _sessionStatusForChatIdRepo.Update(currentStatusState);
+                sessionProcessor._sessionStatusForChatIdRepo.Update(currentStatusState);
             }
 
             else if (currentStatusState.SessionProcessor == (int)SessionProcessor.NameOfSession.SessionProcessorForNewMessage
@@ -77,7 +77,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
             {
                 _messageRepository.Add(dataMessage);
                 currentStatusState.SessionStatus = (int)SessionProcessorForNewMessage.SessionStatus.MessageIsApply;
-                _sessionStatusForChatIdRepo.Update(currentStatusState);
+                sessionProcessor._sessionStatusForChatIdRepo.Update(currentStatusState);
             }
 
             var sentMessage = botClient
