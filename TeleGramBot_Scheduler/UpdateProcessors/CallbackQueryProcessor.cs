@@ -15,14 +15,14 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
     public class CallbackQueryProcessor : IUpdateProcessor
     {
         private readonly IRepository<DataMessage> _messageRepository;
-      //  private readonly IRepository<SessionStatusForChatId> _sessionStatusForChatIdRepo;
+        private readonly IRepository<SessionStatusForChatId> _sessionStatusForChatIdRepo;
         public bool IsApplicable(Update update)
             => update.Type == UpdateType.CallbackQuery;
 
-        public CallbackQueryProcessor()
+        public CallbackQueryProcessor(IRepository<DataMessage> messageRepository, IRepository<SessionStatusForChatId> sessionStatusForChatIdRepo)
         {
-            _messageRepository = new MessageRepository();
-     //       _sessionStatusForChatIdRepo = new SessionStatusForChatIdRepository();
+            _messageRepository = messageRepository;
+            _sessionStatusForChatIdRepo = sessionStatusForChatIdRepo;
         }
 
         public void Apply(Update update, TelegramBotClient botClient, SessionProcessor sessionProcessor)
@@ -33,7 +33,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
              SessionStatusForChatId sessionStateForCurrentChat = null;
              try
              {
-                 allSessionStates = sessionProcessor._sessionStatusForChatIdRepo.GetAll();
+                 allSessionStates = _sessionStatusForChatIdRepo.GetAll();
              }
              catch (Exception ex) { Console.WriteLine($"{ex.Message}"); }
 
@@ -55,7 +55,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                         SessionProcessor = (int)SessionProcessor.NameOfSession.SessionProcessorForNewMessage,
                         SessionStatus = (int)SessionProcessorForNewMessage.SessionStatus.OpenSession
                     };
-                    sessionProcessor._sessionStatusForChatIdRepo.Add(addSesion);
+                    _sessionStatusForChatIdRepo.Add(addSesion);
                 }
 
 
@@ -63,7 +63,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                 {
                     sessionStateForCurrentChat.SessionProcessor = (int)SessionProcessor.NameOfSession.SessionProcessorForNewMessage;
                     sessionStateForCurrentChat.SessionStatus = (int)SessionProcessorForNewMessage.SessionStatus.OpenSession;
-                    sessionProcessor._sessionStatusForChatIdRepo.Update(sessionStateForCurrentChat);
+                    _sessionStatusForChatIdRepo.Update(sessionStateForCurrentChat);
                 }
 
                     var sentMessage = botClient
@@ -83,7 +83,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
 
                 foreach (var actualmessage in actualmessages)
                 {
-                    listMessageText += $"\n{actualmessage.TimeToRemind.Date.ToString("dd/MM/yyyy HH:mm")}, Id {actualmessage.Id}: {actualmessage.MessageText}\n";
+                    listMessageText += $"\n{actualmessage.TimeToRemind.ToString("dd/MM/yyyy HH:mm")}, Id {actualmessage.Id}: {actualmessage.MessageText}\n";
                 }
                 sessionProcessor.IsSessionOpen = false;
                 var sentMessage = botClient
@@ -104,14 +104,14 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                         SessionProcessor = (int)SessionProcessor.NameOfSession.SessionProcessorForDeleteMessage,
                         SessionStatus = (int)SessionProcessorForDeleteMessage.SessionStatus.OpenSession
                     };
-                    sessionProcessor._sessionStatusForChatIdRepo.Add(addSesion);
+                    _sessionStatusForChatIdRepo.Add(addSesion);
                 }
 
                 if (sessionStateForCurrentChat != null)
                 {
                     sessionStateForCurrentChat.SessionProcessor = (int)SessionProcessor.NameOfSession.SessionProcessorForDeleteMessage;
                     sessionStateForCurrentChat.SessionStatus = (int)SessionProcessorForDeleteMessage.SessionStatus.OpenSession;
-                    sessionProcessor._sessionStatusForChatIdRepo.Update(sessionStateForCurrentChat);
+                    _sessionStatusForChatIdRepo.Update(sessionStateForCurrentChat);
                 }
 
                 var sentMessage = botClient
@@ -132,7 +132,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                         SessionProcessor = (int)SessionProcessor.NameOfSession.SessionProcessorForUpdateMessage,
                         SessionStatus = (int)SessionProcessorForUpdateMessage.SessionStatus.OpenSession
                     };
-                    sessionProcessor._sessionStatusForChatIdRepo.Add(addSesion);
+                    _sessionStatusForChatIdRepo.Add(addSesion);
                 }
 
 
@@ -140,7 +140,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                 {
                     sessionStateForCurrentChat.SessionProcessor = (int)SessionProcessor.NameOfSession.SessionProcessorForUpdateMessage;
                     sessionStateForCurrentChat.SessionStatus = (int)SessionProcessorForUpdateMessage.SessionStatus.OpenSession;
-                    sessionProcessor._sessionStatusForChatIdRepo.Update(sessionStateForCurrentChat);
+                    _sessionStatusForChatIdRepo.Update(sessionStateForCurrentChat);
                 }
 
                 var sentMessage = botClient
@@ -161,7 +161,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                         SessionProcessor = (int)SessionProcessor.NameOfSession.SessionProcessorForMarkAsDoneMessage,
                         SessionStatus = (int)SessionProcessorForMarkAsDoneMessage.SessionStatus.OpenSession
                     };
-                    sessionProcessor._sessionStatusForChatIdRepo.Add(addSesion);
+                    _sessionStatusForChatIdRepo.Add(addSesion);
                 }
 
 
@@ -169,7 +169,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                 {
                     sessionStateForCurrentChat.SessionProcessor = (int)SessionProcessor.NameOfSession.SessionProcessorForMarkAsDoneMessage;
                     sessionStateForCurrentChat.SessionStatus = (int)SessionProcessorForMarkAsDoneMessage.SessionStatus.OpenSession;
-                    sessionProcessor._sessionStatusForChatIdRepo.Update(sessionStateForCurrentChat);
+                    _sessionStatusForChatIdRepo.Update(sessionStateForCurrentChat);
                 }
                 
                 var sentMessage = botClient

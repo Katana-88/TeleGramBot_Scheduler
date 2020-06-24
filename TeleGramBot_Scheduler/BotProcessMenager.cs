@@ -12,38 +12,46 @@ using Telegram.Bot.Types.ReplyMarkups;
 using TeleGramBot_Scheduler.Data;
 using TeleGramBot_Scheduler.Sessions;
 using TeleGramBot_Scheduler.UpdateProcessors;
+using Autofac;
 
 namespace TeleGramBot_Scheduler
 {
     public class BotProcessMenager
     {
         private readonly TelegramBotClient _botClient;
-        private readonly IRepository<DataMessage> _messageRepository;
+        private SessionProcessor sessionProcessor;
+        public Dictionary<DateTime, int> DB_AsDateTimeId { get; set; }
+
         private List<IUpdateProcessor> updateProcessors = new List<IUpdateProcessor>
         {
-            new TextMessageUpdateProcessor(),
-            new CallbackQueryProcessor(),
-            new DateTimeUpdateProcessor(),
-            new IdProcessor()
+            new TextMessageUpdateProcessor(Program.Container.BeginLifetimeScope().Resolve<IRepository<DataMessage>>(), 
+                Program.Container.BeginLifetimeScope().Resolve<IRepository<SessionStatusForChatId>>()),
+            new CallbackQueryProcessor(Program.Container.BeginLifetimeScope().Resolve<IRepository<DataMessage>>(),
+                Program.Container.BeginLifetimeScope().Resolve<IRepository<SessionStatusForChatId>>()),
+            new DateTimeUpdateProcessor(Program.Container.BeginLifetimeScope().Resolve<IRepository<DataMessage>>(),
+                Program.Container.BeginLifetimeScope().Resolve<IRepository<SessionStatusForChatId>>()),
+            new IdProcessor(Program.Container.BeginLifetimeScope().Resolve<IRepository<DataMessage>>(),
+                Program.Container.BeginLifetimeScope().Resolve<IRepository<SessionStatusForChatId>>())
         };
-        private SessionProcessor sessionProcessor;
+        
 
         
         public BotProcessMenager(TelegramBotClient botClient)
         {
             _botClient = botClient;
-            _messageRepository = new MessageRepository();
             sessionProcessor = new SessionProcessor();
+            DB_AsDateTimeId = new Dictionary<DateTime, int>();
         }
 
         public void Start()
         {
+            LoadDb();
             while (true)
             {
+                ShowMessageIfItsDateTimeToRemindIsNow();
                 var updates = _botClient.GetUpdatesAsync(BotSettings.MessageOffset).Result;
                 foreach (var update in updates)
-                {
-                   // ShowMessageIfItsDateTimeToRemindIsNow(update);
+                {     
                     if (update.Type == UpdateType.Message && update.Message.Text == "show")
                     {
                         sessionProcessor.IsSessionOpen = true;
@@ -71,24 +79,37 @@ namespace TeleGramBot_Scheduler
             }
         }
 
-        private void ShowMessageIfItsDateTimeToRemindIsNow(Update update)
-        {
+        private void LoadDb()
+        {   
             var allmessages = new List<DataMessage>();
-            allmessages = _messageRepository.GetAll().ToList();
-
+            var repo = Program.Container.BeginLifetimeScope().Resolve<IRepository<DataMessage>>();
+            allmessages = repo.GetAll().ToList();
             var actualmessages = allmessages.Where(l => l.TimeToRemind == DateTime.Now && l.IsActive == true);
-            if (actualmessages != null)
+            foreach (DataMessage message in allmessages)
+            {
+                DB_AsDateTimeId.Add(message.TimeToRemind, message.Id);
+            }
+
+        }
+
+        private void ShowMessageIfItsDateTimeToRemindIsNow()
+        {
+            if (DB_AsDateTimeId != null)
             {
                 var listMessageText = $"Сегодня Вы просили напомнить:\n";
+                var dateTimeToCompare = new DateTime(DateTime.Now.Year, DateTime.Now.Month,
+                    DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
+                var messagesToRemind = DB_AsDateTimeId.Where(k => k.Key.CompareTo(dateTimeToCompare) ==0);
+                var repo = Program.Container.BeginLifetimeScope().Resolve<IRepository<DataMessage>>();
 
-                foreach (var actualmessage in actualmessages)
+                foreach (var messageToRemind in messagesToRemind)
                 {
-                    listMessageText += $"\n{actualmessage.TimeToRemind.Date.ToString("dd/MM/yyyy H:mm")}, Id {actualmessage.Id}: {actualmessage.MessageText}\n";
+                    var message = repo.Get(messageToRemind.Value);
+                    listMessageText += $"\n{message.TimeToRemind.Date.ToString("dd/MM/yyyy H:mm")}, Id {message.Id}: {message.MessageText}\n";
+                    var sentMessage = _botClient 
+                        .SendTextMessageAsync(message.ChatId, $"{listMessageText}\n")
+                        .Result;
                 }
-
-                var sentMessage = _botClient
-                                .SendTextMessageAsync(update.Message.Chat.Id, $"{listMessageText}\n")
-                                .Result;
             }
         }
 

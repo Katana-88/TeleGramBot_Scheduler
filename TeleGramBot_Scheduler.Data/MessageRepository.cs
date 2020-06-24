@@ -10,12 +10,10 @@ namespace TeleGramBot_Scheduler.Data
     public class MessageRepository : IRepository<DataMessage>
     {
         private readonly MessageContext _context;
-       // private readonly DbSet<DataMessage> _dbSet;
 
         public MessageRepository()
         {
             _context = new MessageContext();
-         //   _dbSet = _context.Set<DataMessage>();
         }
 
 
