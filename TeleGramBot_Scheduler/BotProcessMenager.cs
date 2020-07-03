@@ -20,7 +20,7 @@ namespace TeleGramBot_Scheduler
     {
         private readonly TelegramBotClient _botClient;
         private SessionProcessor sessionProcessor;
-        public Dictionary<DateTime, int> DB_AsDateTimeId { get; set; }
+        public Dictionary<int, DateTime> DB_AsDateTimeId { get; set; }
 
         private List<IUpdateProcessor> updateProcessors = new List<IUpdateProcessor>
         {
@@ -40,7 +40,7 @@ namespace TeleGramBot_Scheduler
         {
             _botClient = botClient;
             sessionProcessor = new SessionProcessor();
-            DB_AsDateTimeId = new Dictionary<DateTime, int>();
+            DB_AsDateTimeId = new Dictionary<int, DateTime>();
         }
 
         public void Start()
@@ -65,29 +65,26 @@ namespace TeleGramBot_Scheduler
                         updateProcessor.Apply(update, _botClient, sessionProcessor);
                     }
 
-                    /*if (!sessionProcessor.IsSessionOpen)
-                    {
-                        ShowMenu(update);
-                        ChangeOffset(updates);
-                        sessionProcessor.IsSessionOpen = true;
-                        continue;
-                    }
-                    После закрытия сессии новый update не приходит и получаем исключение NullRefEx
-                     */
                     ChangeOffset(updates);
                 }
             }
         }
 
         private void LoadDb()
-        {   
+        {
+            if (DB_AsDateTimeId != null)
+            {
+                DB_AsDateTimeId = null;
+                DB_AsDateTimeId = new Dictionary<int, DateTime>();
+            }
+
             var allmessages = new List<DataMessage>();
             var repo = Program.Container.BeginLifetimeScope().Resolve<IRepository<DataMessage>>();
             allmessages = repo.GetAll().ToList();
-            var actualmessages = allmessages.Where(l => l.TimeToRemind == DateTime.Now && l.IsActive == true);
-            foreach (DataMessage message in allmessages)
+            var actualmessages = allmessages.Where(l => l.TimeToRemind >= DateTime.Now && l.IsActive == true);
+            foreach (DataMessage message in actualmessages)
             {
-                DB_AsDateTimeId.Add(message.TimeToRemind, message.Id);
+                DB_AsDateTimeId.Add(message.Id, message.TimeToRemind);
             }
 
         }
@@ -97,20 +94,31 @@ namespace TeleGramBot_Scheduler
             if (DB_AsDateTimeId != null)
             {
                 var listMessageText = $"Сегодня Вы просили напомнить:\n";
-                var dateTimeToCompare = new DateTime(DateTime.Now.Year, DateTime.Now.Month,
-                    DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
-                var messagesToRemind = DB_AsDateTimeId.Where(k => k.Key.CompareTo(dateTimeToCompare) ==0);
+                var dateTimeToCompare = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
+                var messagesToRemind = DB_AsDateTimeId.Where(k => k.Value.Date.CompareTo(dateTimeToCompare.Date) == 0 
+                && k.Value.Hour.CompareTo(dateTimeToCompare.Hour) == 0
+                && k.Value.Minute.CompareTo(dateTimeToCompare.Minute) == 0).ToList();
+
                 var repo = Program.Container.BeginLifetimeScope().Resolve<IRepository<DataMessage>>();
 
                 foreach (var messageToRemind in messagesToRemind)
                 {
-                    var message = repo.Get(messageToRemind.Value);
+                    var message = repo.Get(messageToRemind.Key);
+                    message.IsActive = false;
+                    repo.Update(message);
+                    ChangeDictionary(messageToRemind.Key);
                     listMessageText += $"\n{message.TimeToRemind.Date.ToString("dd/MM/yyyy H:mm")}, Id {message.Id}: {message.MessageText}\n";
+                    Console.Write("2");
                     var sentMessage = _botClient 
                         .SendTextMessageAsync(message.ChatId, $"{listMessageText}\n")
                         .Result;
                 }
             }
+        }
+
+        private void ChangeDictionary(int key)
+        {
+            DB_AsDateTimeId.Remove(key);
         }
 
         private void ShowMenu(Update update)
