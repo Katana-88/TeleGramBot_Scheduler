@@ -20,7 +20,7 @@ namespace TeleGramBot_Scheduler
     {
         private readonly TelegramBotClient _botClient;
         private SessionProcessor sessionProcessor;
-        public Dictionary<int, DateTime> DB_AsDateTimeId { get; set; }
+        private DbAsDictionary dbAsDictionary { get; set; }
 
         private List<IUpdateProcessor> updateProcessors = new List<IUpdateProcessor>
         {
@@ -40,12 +40,12 @@ namespace TeleGramBot_Scheduler
         {
             _botClient = botClient;
             sessionProcessor = new SessionProcessor();
-            DB_AsDateTimeId = new Dictionary<int, DateTime>();
+            dbAsDictionary = Program.Container.BeginLifetimeScope().Resolve<DbAsDictionary>();
         }
 
         public void Start()
         {
-            LoadDb();
+            dbAsDictionary.LoadDb();
             while (true)
             {
                 ShowMessageIfItsDateTimeToRemindIsNow();
@@ -70,32 +70,13 @@ namespace TeleGramBot_Scheduler
             }
         }
 
-        private void LoadDb()
-        {
-            if (DB_AsDateTimeId != null)
-            {
-                DB_AsDateTimeId = null;
-                DB_AsDateTimeId = new Dictionary<int, DateTime>();
-            }
-
-            var allmessages = new List<DataMessage>();
-            var repo = Program.Container.BeginLifetimeScope().Resolve<IRepository<DataMessage>>();
-            allmessages = repo.GetAll().ToList();
-            var actualmessages = allmessages.Where(l => l.TimeToRemind >= DateTime.Now && l.IsActive == true);
-            foreach (DataMessage message in actualmessages)
-            {
-                DB_AsDateTimeId.Add(message.Id, message.TimeToRemind);
-            }
-
-        }
-
         private void ShowMessageIfItsDateTimeToRemindIsNow()
         {
-            if (DB_AsDateTimeId != null)
+            if (dbAsDictionary.DB_AsDateTimeId != null)
             {
                 var listMessageText = $"Сегодня Вы просили напомнить:\n";
                 var dateTimeToCompare = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
-                var messagesToRemind = DB_AsDateTimeId.Where(k => k.Value.Date.CompareTo(dateTimeToCompare.Date) == 0 
+                var messagesToRemind = dbAsDictionary.DB_AsDateTimeId.Where(k => k.Value.Date.CompareTo(dateTimeToCompare.Date) == 0 
                 && k.Value.Hour.CompareTo(dateTimeToCompare.Hour) == 0
                 && k.Value.Minute.CompareTo(dateTimeToCompare.Minute) == 0).ToList();
 
@@ -108,17 +89,18 @@ namespace TeleGramBot_Scheduler
                     repo.Update(message);
                     ChangeDictionary(messageToRemind.Key);
                     listMessageText += $"\n{message.TimeToRemind.Date.ToString("dd/MM/yyyy H:mm")}, Id {message.Id}: {message.MessageText}\n";
-                    Console.Write("2");
+                    
                     var sentMessage = _botClient 
                         .SendTextMessageAsync(message.ChatId, $"{listMessageText}\n")
                         .Result;
+                    listMessageText = "";
                 }
             }
         }
 
         private void ChangeDictionary(int key)
         {
-            DB_AsDateTimeId.Remove(key);
+            dbAsDictionary.DB_AsDateTimeId.Remove(key);
         }
 
         private void ShowMenu(Update update)

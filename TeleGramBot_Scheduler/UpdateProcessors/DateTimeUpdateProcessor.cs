@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Autofac;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,6 +16,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
     {
         private readonly IRepository<DataMessage> _messageRepository;
         private readonly IRepository<SessionStatusForChatId> _sessionStatusForChatIdRepo;
+        private DbAsDictionary dbAsDictionary { get; set; }
 
         public bool IsApplicable(Update update)
             => update.Type == UpdateType.Message && DateTime.TryParse(update.Message.Text, out DateTime result) && update.Message.Text != null;
@@ -23,6 +25,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
         {
             _messageRepository = messageRepository;
             _sessionStatusForChatIdRepo = sessionStatusForChatIdRepo;
+            dbAsDictionary = Program.Container.BeginLifetimeScope().Resolve<DbAsDictionary>();
         }
 
         public void Apply(Update update, TelegramBotClient botClient, SessionProcessor sessionProcessor)
@@ -84,6 +87,8 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
             }
 
             sessionProcessor.IsSessionOpen = false;
+
+            dbAsDictionary.LoadDb();
 
             var sentMessage = botClient
                 .SendTextMessageAsync(message.Chat.Id, $"Дата и время сохранены.\n")

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Autofac;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,6 +16,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
     {
         private readonly IRepository<DataMessage> _messageRepository;
         private readonly IRepository<SessionStatusForChatId> _sessionStatusForChatIdRepo;
+        private DbAsDictionary dbAsDictionary { get; set; }
 
         public bool IsApplicable(Update update)
             => update.Type == UpdateType.Message && update.Message.Text != null && int.TryParse(update.Message.Text, out int result);
@@ -23,6 +25,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
         {
             _messageRepository = messageRepository;
             _sessionStatusForChatIdRepo = sessionStatusForChatIdRepo;
+            dbAsDictionary = Program.Container.BeginLifetimeScope().Resolve<DbAsDictionary>();
         }
 
         public void Apply(Update update, TelegramBotClient botClient, SessionProcessor sessionProcessor)
@@ -39,7 +42,7 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
 
             var allStatuses = _sessionStatusForChatIdRepo.GetAll();
             var currentStatusState = allStatuses.OrderByDescending(s => s.Id).FirstOrDefault(s => s.ChatId == update.Message.Chat.Id);
-            Console.WriteLine($"{currentStatusState.SessionProcessor}, {currentStatusState.SessionStatus}");
+
             if (currentStatusState.SessionProcessor == (int)SessionProcessor.NameOfSession.SessionProcessorForDeleteMessage
                 && currentStatusState.SessionStatus == (int)SessionProcessorForDeleteMessage.SessionStatus.OpenSession)
             {
@@ -51,6 +54,8 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                     currentStatusState.SessionStatus = (int)SessionProcessorForDeleteMessage.SessionStatus.DeleteIdIsAply;
                     _sessionStatusForChatIdRepo.Update(currentStatusState);
                     sessionProcessor.IsSessionOpen = false;
+
+                    dbAsDictionary.LoadDb();
 
                     var sentMessage = botClient
                                     .SendTextMessageAsync(update.Message.Chat.Id, $"Заметка удалена.\n")
@@ -78,6 +83,8 @@ namespace TeleGramBot_Scheduler.UpdateProcessors
                     _sessionStatusForChatIdRepo.Update(currentStatusState);
 
                     sessionProcessor.IsSessionOpen = false;
+
+                    dbAsDictionary.LoadDb();
 
                     var sentMessage = botClient
                                     .SendTextMessageAsync(update.Message.Chat.Id, $"Заметка отмечена как выполненная.\n")

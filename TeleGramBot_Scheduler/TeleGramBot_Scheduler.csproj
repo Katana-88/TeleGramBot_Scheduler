@@ -96,6 +96,7 @@
     <Compile Include="BotInitializer.cs" />
     <Compile Include="BotProcessMenager.cs" />
     <Compile Include="BotSettings.cs" />
+    <Compile Include="DbAsDictionary.cs" />
     <Compile Include="Sessions\SessionProcessorForDeleteMessage.cs" />
     <Compile Include="Sessions\SessionProcessorForMarkAsDoneMessage.cs" />
     <Compile Include="Sessions\SessionProcessorForNewMessage.cs" />

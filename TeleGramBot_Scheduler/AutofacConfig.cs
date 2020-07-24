@@ -16,6 +16,7 @@ namespace TeleGramBot_Scheduler
             builder.RegisterType<SessionStatusForChatIdRepository>().As<IRepository<SessionStatusForChatId>>().SingleInstance();
             builder.RegisterType<MessageRepository>().As<IRepository<DataMessage>>().SingleInstance();
             builder.RegisterType<MessageContext>().As<MessageContext>().SingleInstance();
+            builder.RegisterType<DbAsDictionary>().As<DbAsDictionary>().SingleInstance();
             var container = builder.Build();
 
             return container;
